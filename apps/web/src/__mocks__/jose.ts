@@ -23,7 +23,17 @@ export class SignJWT {
   }
 }
 
-export async function jwtVerify(_token: string, _secret: Uint8Array) {
-  // Minimal shape that your verify helper expects
-  return { payload: { user_id: "test-user-id", username: "testuser" } };
+type MockPayload = {
+  user_id: string;
+  username: string;
+};
+
+export async function jwtVerify(): Promise<{ payload: MockPayload }> {
+  return {
+    payload: {
+      user_id: "test-user-id",
+      username: "testuser",
+    },
+  };
 }
+
