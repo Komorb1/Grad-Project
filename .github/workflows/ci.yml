@@ -20,9 +20,6 @@ jobs:
       # Install from repo root so workspaces are resolved correctly
       - run: npm ci
 
-      # Prisma client generation (root schema)
-      - run: npx prisma generate
-
       # Run web checks via workspace
       - run: npm -w web run lint
       - run: npm -w web run build
