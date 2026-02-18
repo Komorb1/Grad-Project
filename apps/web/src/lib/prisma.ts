@@ -19,6 +19,8 @@ const pool =
     connectionString,
   });
 
+export const pgPool = pool;
+
 const adapter = new PrismaPg(pool);
 
 export const prisma =
