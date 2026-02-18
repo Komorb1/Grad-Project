@@ -1,8 +1,25 @@
 {
-  "devDependencies": {
-    "prisma": "^7.4.0"
+  "name": "grad-project",
+  "private": true,
+  "workspaces": ["apps/*"],
+
+  "scripts": {
+    "dev:web": "npm -w web run dev",
+    "build:web": "npm -w web run build",
+    "lint:web": "npm -w web run lint",
+
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
   },
+
   "dependencies": {
     "@prisma/client": "^7.4.0"
+  },
+
+  "devDependencies": {
+    "prisma": "^7.4.0",
+    "tailwindcss": "^4.2.0",
+    "@tailwindcss/postcss": "^4.2.0"
   }
 }
