@@ -8,10 +8,6 @@ jobs:
   web_ci:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: apps/web
-
     steps:
       - uses: actions/checkout@v4
 
@@ -19,8 +15,14 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
+      # Install from repo root so workspaces are resolved correctly
       - run: npm ci
-      - run: npm run lint
-      - run: npm run build
+
+      # Prisma client generation (root schema)
+      - run: npx prisma generate
+
+      # Run web checks via workspace
+      - run: npm -w web run lint
+      - run: npm -w web run build
