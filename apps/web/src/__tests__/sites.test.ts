@@ -62,14 +62,23 @@ beforeAll(async () => {
   await prisma.siteUser.deleteMany({ where: { user_id: MOCK_USER_ID } });
   await prisma.user.deleteMany({ where: { user_id: MOCK_USER_ID } });
 
-  await prisma.user.create({
-    data: {
+  await prisma.user.upsert({
+    where: { user_id: MOCK_USER_ID },
+    update: {
+      full_name: user.full_name,
+      username: user.username,
+      email: user.email,
+      phone: null,
+      password_hash: "x",
+      status: "active",
+    },
+    create: {
       user_id: MOCK_USER_ID,
       full_name: user.full_name,
       username: user.username,
       email: user.email,
       phone: null,
-      password_hash: "x", // not used in these tests
+      password_hash: "x",
       status: "active",
     },
   });

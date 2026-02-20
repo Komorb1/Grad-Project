@@ -35,9 +35,10 @@ export async function jwtVerify(token?: string): Promise<{ payload: MockPayload 
   // Encode user choice in token value for tests
   // - "user:0002" -> ...0002
   // - default -> ...0001
-  const user_id =
-    t.includes("user:0002")
-      ? "00000000-0000-0000-0000-000000000002"
+  const user_id = t.includes("user:0002")
+    ? "00000000-0000-0000-0000-000000000002"
+    : t.includes("user:0003")
+      ? "00000000-0000-0000-0000-000000000003"
       : "00000000-0000-0000-0000-000000000001";
 
   return {
