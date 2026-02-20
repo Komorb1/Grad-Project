@@ -56,6 +56,9 @@ describe("Sensors management (Task #9)", () => {
   let sensorId = "";
 
   beforeAll(async () => {
+    await prisma.site.deleteMany({ where: { name: "Sensors Test Site" } });
+    await prisma.siteUser.deleteMany({ where: { user_id: { in: [OWNER_ID, VIEWER_ID] } } });
+    
     // Ensure users exist (idempotent)
     await prisma.user.upsert({
       where: { user_id: OWNER_ID },
