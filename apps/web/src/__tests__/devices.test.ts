@@ -1,6 +1,6 @@
-import { prisma} from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-import { POST as devicesPOST, GET as devicesGET } from "@/app/api/sites/[siteId]/devices/route";
+import {POST as devicesPOST,GET as devicesGET,} from "@/app/api/sites/[siteId]/devices/route";
 import { PATCH as deviceStatusPATCH } from "@/app/api/devices/[deviceId]/status/route";
 
 type RegisterDeviceResponse = {
@@ -40,72 +40,79 @@ describe("Devices management (Task #8)", () => {
   const MOCK_USER_ID = "00000000-0000-0000-0000-000000000002";
   const cookie = "auth_token=user:0002";
 
+  // Generate a unique serial per test run to avoid CI collisions
+  const serial = `SN-TEST-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
   let siteId = "";
   let deviceId = "";
 
-    beforeAll(async () => {
-        await prisma.siteUser.deleteMany({ where: { user_id: MOCK_USER_ID } });
-        await prisma.user.deleteMany({ where: { user_id: MOCK_USER_ID } });
-
-        await prisma.user.upsert({
-        where: { user_id: MOCK_USER_ID },
-        update: {
-            full_name: "Mock User",
-            username: "mock_user_devices",
-            email: "mock_user_devices@example.com",
-            phone: null,
-            password_hash: "x",
-            status: "active",
-        },
-        create: {
-            user_id: MOCK_USER_ID,
-            full_name: "Mock User",
-            username: "mock_user_devices",
-            email: "mock_user_devices@example.com",
-            phone: null,
-            password_hash: "x",
-            status: "active",
-        },
-        });
-
-        const site = await prisma.site.create({
-            data: { name: "Device Test Site", status: "active" },
-            select: { site_id: true },
-        });
-        siteId = site.site_id;
-
-        await prisma.siteUser.create({
-            data: {
-            site_id: siteId,
-            user_id: MOCK_USER_ID,
-            role: "owner",
-            },
-        });
-    });
-
-  afterAll(async () => {
-    if (deviceId) {
-      await prisma.device.deleteMany({ where: { device_id: deviceId } });
-    }
-    if (siteId) {
-      await prisma.site.deleteMany({ where: { site_id: siteId } });
-    }
+  beforeAll(async () => {
+    // Idempotent cleanup (important for CI reruns)
+    await prisma.site.deleteMany({ where: { name: "Device Test Site" } });
+    await prisma.siteUser.deleteMany({ where: { user_id: MOCK_USER_ID } });
     await prisma.user.deleteMany({ where: { user_id: MOCK_USER_ID } });
 
+    await prisma.user.upsert({
+      where: { user_id: MOCK_USER_ID },
+      update: {
+        full_name: "Mock User",
+        username: "mock_user_devices",
+        email: "mock_user_devices@example.com",
+        phone: null,
+        password_hash: "x",
+        status: "active",
+      },
+      create: {
+        user_id: MOCK_USER_ID,
+        full_name: "Mock User",
+        username: "mock_user_devices",
+        email: "mock_user_devices@example.com",
+        phone: null,
+        password_hash: "x",
+        status: "active",
+      },
+    });
+
+    const site = await prisma.site.create({
+      data: { name: "Device Test Site", status: "active" },
+      select: { site_id: true },
+    });
+    siteId = site.site_id;
+
+    await prisma.siteUser.create({
+      data: {
+        site_id: siteId,
+        user_id: MOCK_USER_ID,
+        role: "owner",
+      },
+    });
+  });
+
+  afterAll(async () => {
+    // Delete by site_id so cleanup still works even if deviceId was never set
+    if (siteId) {
+      await prisma.device.deleteMany({ where: { site_id: siteId } });
+      await prisma.site.deleteMany({ where: { site_id: siteId } });
+    }
+
+    await prisma.siteUser.deleteMany({ where: { user_id: MOCK_USER_ID } });
+    await prisma.user.deleteMany({ where: { user_id: MOCK_USER_ID } });
   });
 
   test("register device under site (owner) returns secret once", async () => {
     const req = makeReq(
       "POST",
-      { serial_number: "SN-TEST-001", device_type: "esp32" },
+      { serial_number: serial, device_type: "esp32" },
       cookie
     );
 
-    const res = await devicesPOST(req as never, { params: Promise.resolve({ siteId }) });
+    const res = await devicesPOST(req as never, {
+      params: Promise.resolve({ siteId }),
+    });
     expect(res.status).toBe(201);
 
     const body = await readJson<RegisterDeviceResponse>(res);
-    expect(body.device.serial_number).toBe("SN-TEST-001");
+    expect(body.device.serial_number).toBe(serial);
     expect(typeof body.device_secret).toBe("string");
     expect(body.device_secret.length).toBeGreaterThan(20);
 
@@ -123,17 +130,21 @@ describe("Devices management (Task #8)", () => {
   test("unique serial_number enforced (409)", async () => {
     const req = makeReq(
       "POST",
-      { serial_number: "SN-TEST-001", device_type: "esp32" },
+      { serial_number: serial, device_type: "esp32" },
       cookie
     );
 
-    const res = await devicesPOST(req as never, { params: Promise.resolve({ siteId }) });
+    const res = await devicesPOST(req as never, {
+      params: Promise.resolve({ siteId }),
+    });
     expect(res.status).toBe(409);
   });
 
   test("list devices per site (member can list)", async () => {
     const req = makeReq("GET", undefined, cookie);
-    const res = await devicesGET(req as never, { params: Promise.resolve({ siteId }) });
+    const res = await devicesGET(req as never, {
+      params: Promise.resolve({ siteId }),
+    });
     expect(res.status).toBe(200);
 
     const body = await readJson<ListDevicesResponse>(res);
@@ -172,7 +183,7 @@ describe("Devices management (Task #8)", () => {
 
     expect(res.status).toBe(403);
 
-    // restore owner for cleanup consistency
+    // restore owner for any later local runs
     await prisma.siteUser.update({
       where: { site_id_user_id: { site_id: siteId, user_id: MOCK_USER_ID } },
       data: { role: "owner" },

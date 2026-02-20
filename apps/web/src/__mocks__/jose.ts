@@ -9,7 +9,8 @@ type MockPayload = {
 // Used by user auth code (requireUserId)
 export async function jwtVerify(token?: string): Promise<{ payload: MockPayload }> {
   const t = typeof token === "string" ? token : "";
-  
+
+  // Device tokens
   if (t.includes("device:")) {
     return {
       payload: {
@@ -20,6 +21,17 @@ export async function jwtVerify(token?: string): Promise<{ payload: MockPayload 
     };
   }
 
+  const mocked = process.env.MOCK_USER_ID;
+  if (mocked) {
+    return {
+      payload: {
+        user_id: mocked,
+        username: "testuser",
+      },
+    };
+  }
+
+  // Otherwise use token patterns
   const user_id = t.includes("user:0002")
     ? "00000000-0000-0000-0000-000000000002"
     : t.includes("user:0003")

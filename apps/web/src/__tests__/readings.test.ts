@@ -29,8 +29,15 @@ describe("Sensor reading ingestion (Task #11)", () => {
   let sensorId = "";
 
   beforeAll(async () => {
+    // Clean slate (child -> parent)
+    await prisma.sensorReading.deleteMany({
+      where: { sensor: { device_id: DEVICE_ID } },
+    });
+    await prisma.sensor.deleteMany({ where: { device_id: DEVICE_ID } });
+    await prisma.device.deleteMany({ where: { device_id: DEVICE_ID } });
     await prisma.site.deleteMany({ where: { site_id: SITE_ID } });
 
+    // Create parent records
     await prisma.site.create({
       data: { site_id: SITE_ID, name: "Readings Site", status: "active" },
       select: { site_id: true },

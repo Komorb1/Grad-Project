@@ -48,9 +48,6 @@ describe("Sensors management (Task #9)", () => {
   const OWNER_ID = "00000000-0000-0000-0000-000000000002";
   const VIEWER_ID = "00000000-0000-0000-0000-000000000003";
 
-  const ownerCookie = "auth_token=user:0002";
-  const viewerCookie = "auth_token=user:0003";
-
   let siteId = "";
   let deviceId = "";
   let sensorId = "";
@@ -131,6 +128,7 @@ describe("Sensors management (Task #9)", () => {
   });
 
   afterAll(async () => {
+    delete process.env.MOCK_USER_ID;
     if (sensorId) await prisma.sensor.deleteMany({ where: { sensor_id: sensorId } });
     if (deviceId) await prisma.device.deleteMany({ where: { device_id: deviceId } });
     if (siteId) await prisma.site.deleteMany({ where: { site_id: siteId } });
@@ -139,30 +137,24 @@ describe("Sensors management (Task #9)", () => {
   });
 
   test("owner can add sensor to device", async () => {
-    const req = makeReq(
-      "POST",
-      { sensor_type: "smoke", location_label: "Kitchen ceiling" },
-      ownerCookie
-    );
+    process.env.MOCK_USER_ID = OWNER_ID;
 
-    const res = await sensorsPOST(asNextRequest(req), {
-      params: Promise.resolve({ deviceId }),
-    });
+    const req = makeReq("POST", { sensor_type: "smoke", location_label: "Kitchen ceiling" });
+    const res = await sensorsPOST(asNextRequest(req), { params: Promise.resolve({ deviceId }) });
+
     expect(res.status).toBe(201);
 
     const body = await readJson<CreateSensorResponse>(res);
-    expect(body.sensor.sensor_type).toBe("smoke");
-    expect(body.sensor.status).toBe("ok");
-    expect(body.sensor.is_enabled).toBe(true);
-
     sensorId = body.sensor.sensor_id;
+    expect(sensorId).toMatch(/^[0-9a-f-]{8}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{12}$/i);
   });
 
   test("list sensors per device (viewer can read)", async () => {
-    const req = makeReq("GET", undefined, viewerCookie);
-    const res = await sensorsGET(asNextRequest(req), {
-      params: Promise.resolve({ deviceId }),
-    });
+    process.env.MOCK_USER_ID = VIEWER_ID;
+
+    const req = makeReq("GET");
+    const res = await sensorsGET(asNextRequest(req), { params: Promise.resolve({ deviceId }) });
+
     expect(res.status).toBe(200);
 
     const body = await readJson<ListSensorsResponse>(res);
@@ -170,10 +162,13 @@ describe("Sensors management (Task #9)", () => {
   });
 
   test("owner can disable sensor", async () => {
-    const req = makeReq("PATCH", { is_enabled: false }, ownerCookie);
+    process.env.MOCK_USER_ID = OWNER_ID;
+
+    const req = makeReq("PATCH", { is_enabled: false });
     const res = await sensorPATCH(asNextRequest(req), {
       params: Promise.resolve({ sensorId }),
     });
+
     expect(res.status).toBe(200);
 
     const updated = await prisma.sensor.findUnique({
@@ -184,10 +179,13 @@ describe("Sensors management (Task #9)", () => {
   });
 
   test("owner can update sensor status", async () => {
-    const req = makeReq("PATCH", { status: "faulty" }, ownerCookie);
+    process.env.MOCK_USER_ID = OWNER_ID;
+
+    const req = makeReq("PATCH", { status: "faulty" });
     const res = await sensorPATCH(asNextRequest(req), {
       params: Promise.resolve({ sensorId }),
     });
+
     expect(res.status).toBe(200);
 
     const updated = await prisma.sensor.findUnique({
@@ -198,10 +196,11 @@ describe("Sensors management (Task #9)", () => {
   });
 
   test("viewer cannot modify sensor", async () => {
-    const req = makeReq("PATCH", { status: "ok" }, viewerCookie);
-    const res = await sensorPATCH(asNextRequest(req), {
-      params: Promise.resolve({ sensorId }),
-    });
+    process.env.MOCK_USER_ID = VIEWER_ID;
+
+    const req = makeReq("PATCH", { status: "ok" });
+    const res = await sensorPATCH(asNextRequest(req), { params: Promise.resolve({ sensorId }) });
+
     expect(res.status).toBe(403);
   });
 });

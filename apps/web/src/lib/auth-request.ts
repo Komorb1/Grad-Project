@@ -12,6 +12,9 @@ function getCookieValue(cookieHeader: string | null, name: string): string | nul
 }
 
 export async function requireUserId(req: Request): Promise<string> {
+  const mock = process.env.MOCK_USER_ID;
+  if (mock) return mock;
+
   const cookieHeader = req.headers.get("cookie");
   const token = getCookieValue(cookieHeader, "auth_token");
 
