@@ -28,10 +28,21 @@ type MockPayload = {
   username: string;
 };
 
-export async function jwtVerify(): Promise<{ payload: MockPayload }> {
+export async function jwtVerify(token?: string): Promise<{ payload: MockPayload }> {
+  // token is the string passed from your code: jwtVerify(token, ...)
+  const t = typeof token === "string" ? token : "";
+
+  // Encode user choice in token value for tests
+  // - "user:0002" -> ...0002
+  // - default -> ...0001
+  const user_id =
+    t.includes("user:0002")
+      ? "00000000-0000-0000-0000-000000000002"
+      : "00000000-0000-0000-0000-000000000001";
+
   return {
     payload: {
-      user_id: "00000000-0000-0000-0000-000000000001",
+      user_id,
       username: "testuser",
     },
   };

@@ -1,9 +1,13 @@
-import { prisma, pgPool} from "@/lib/prisma";
+import { prisma} from "@/lib/prisma";
 
 import { POST as sitesPOST, GET as sitesGET } from "@/app/api/sites/route";
 import { PATCH as statusPATCH } from "@/app/api/sites/[siteId]/status/route";
 import { DELETE as siteDELETE } from "@/app/api/sites/[siteId]/route";
+import type { NextRequest } from "next/server";
 
+function asNextRequest(r: Request): NextRequest {
+  return r as unknown as NextRequest;
+}
 type SitesResponse = {
   sites: {
     site_id: string;
@@ -50,7 +54,7 @@ describe("Sites RBAC", () => {
     password: "password123",
   };
 
-  let cookie = "";
+  let cookie = "auth_token=user:0001";
   let siteId = "";
   const MOCK_USER_ID = "00000000-0000-0000-0000-000000000001";
 
@@ -77,9 +81,6 @@ beforeAll(async () => {
   afterAll(async () => {
     if (siteId) await prisma.site.deleteMany({ where: { site_id: siteId } });
     await prisma.user.deleteMany({ where: { user_id: MOCK_USER_ID } });
-
-    await prisma.$disconnect();
-    await pgPool.end();
   });
 
   test("create site creates SiteUser owner", async () => {
@@ -98,7 +99,7 @@ beforeAll(async () => {
       where: {
         site_id_user_id: {
           site_id: siteId,
-          user_id: (await prisma.user.findUnique({ where: { username: user.username } }))!.user_id,
+          user_id: MOCK_USER_ID,
         },
       },
       select: { role: true },
@@ -123,7 +124,8 @@ beforeAll(async () => {
       body: JSON.stringify({ status: "inactive" }),
     });
 
-    const res = await statusPATCH(req, { params: { siteId } });
+    const res = await statusPATCH(asNextRequest(req), { params: Promise.resolve({ siteId }) });
+
     expect(res.status).toBe(200);
 
     const updated = await prisma.site.findUnique({
@@ -136,7 +138,7 @@ beforeAll(async () => {
 
   test("delete site allowed for owner", async () => {
     const req = new Request("http://localhost", { method: "DELETE", headers: { cookie } });
-    const res = await siteDELETE(req, { params: { siteId } });
+    const res = await siteDELETE(asNextRequest(req), { params: Promise.resolve({ siteId }) });
     expect(res.status).toBe(200);
 
     const deleted = await prisma.site.findUnique({ where: { site_id: siteId } });

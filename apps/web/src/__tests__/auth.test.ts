@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { prisma, pgPool } from "@/lib/prisma";
+import { prisma} from "@/lib/prisma";
 import { POST as signupPOST } from "@/app/api/auth/signup/route";
 import { POST as loginPOST } from "@/app/api/auth/login/route";
 import { POST as logoutPOST } from "@/app/api/auth/logout/route";
@@ -41,8 +41,6 @@ describe("Auth flow", () => {
     await prisma.user.deleteMany({
       where: { OR: [{ username: testUser.username }, { email: testUser.email }] },
     });
-    await prisma.$disconnect();
-    await pgPool.end();
   });
 
   test("signup stores a hashed password", async () => {
