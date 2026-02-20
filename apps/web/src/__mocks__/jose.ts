@@ -31,7 +31,7 @@ type MockPayload = {
 export async function jwtVerify(): Promise<{ payload: MockPayload }> {
   return {
     payload: {
-      user_id: "test-user-id",
+      user_id: "00000000-0000-0000-0000-000000000001",
       username: "testuser",
     },
   };
