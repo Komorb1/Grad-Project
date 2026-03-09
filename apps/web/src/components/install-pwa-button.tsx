@@ -7,27 +7,32 @@ type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
+function getClientInfo() {
+  if (typeof window === "undefined") {
+    return {
+      isIOS: false,
+      isAndroid: false,
+      isStandalone: false,
+    };
+  }
+
+  const ua = window.navigator.userAgent;
+  const isIOS = /iphone|ipad|ipod/i.test(ua);
+  const isAndroid = /android/i.test(ua);
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as Navigator & { standalone?: boolean }).standalone ===
+      true;
+
+  return { isIOS, isAndroid, isStandalone };
+}
+
 export default function InstallPWAButton() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const ua = window.navigator.userAgent;
-    const ios = /iphone|ipad|ipod/i.test(ua);
-    const android = /android/i.test(ua);
-    const standalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-        true;
-
-    setIsIOS(ios);
-    setIsAndroid(android);
-    setIsStandalone(standalone);
-
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
@@ -35,7 +40,6 @@ export default function InstallPWAButton() {
 
     const handleAppInstalled = () => {
       setDeferredPrompt(null);
-      setIsStandalone(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -55,7 +59,11 @@ export default function InstallPWAButton() {
     };
   }, []);
 
-  if (!isReady || isStandalone) return null;
+  if (!isReady) return null;
+
+  const { isIOS, isAndroid, isStandalone } = getClientInfo();
+
+  if (isStandalone) return null;
 
   if (deferredPrompt) {
     return (
@@ -71,7 +79,8 @@ export default function InstallPWAButton() {
                 Install SEAS
               </p>
               <p className="mt-1 text-xs leading-5 text-slate-600 dark:text-slate-300">
-                Add SEAS to your device for faster access and a more app-like experience.
+                Add SEAS to your device for faster access and a more app-like
+                experience.
               </p>
             </div>
           </div>
