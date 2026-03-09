@@ -1,6 +1,7 @@
 import { TriangleAlert, Router, MapPinned, ShieldCheck } from "lucide-react";
 import { StatCard } from "@/components/ui/stat-card";
 import { StatusBadge } from "@/components/ui/status-badge";
+import InstallPWAButton from "@/components/install-pwa-button";
 
 const recentAlerts = [
   {
@@ -28,14 +29,20 @@ const recentAlerts = [
 
 export default function DashboardPage() {
   return (
-    <div className="space-y-8">
-      <section>
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
-          Dashboard
-        </h2>
-        <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-          Overview of sites, devices, and emergency activity.
-        </p>
+    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white sm:text-3xl">
+            Dashboard
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm text-slate-600 dark:text-slate-400 sm:text-base">
+            Overview of sites, devices, and emergency activity.
+          </p>
+        </div>
+
+        <div className="w-full lg:w-auto lg:max-w-sm">
+          <InstallPWAButton />
+        </div>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -66,13 +73,60 @@ export default function DashboardPage() {
       </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+        <div className="flex flex-col gap-2 border-b border-slate-200 px-4 py-4 dark:border-slate-800 sm:px-5">
           <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             Recent Events
           </h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Latest device activity and alert status updates.
+          </p>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="md:hidden">
+          <div className="space-y-3 p-4">
+            {recentAlerts.map((alert) => (
+              <article
+                key={alert.id}
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/40"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                      {alert.id}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                      {alert.site}
+                    </p>
+                  </div>
+
+                  <StatusBadge status={alert.status} />
+                </div>
+
+                <div className="mt-4 space-y-2 text-sm">
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400">
+                      Device:
+                    </span>{" "}
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {alert.device}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-slate-500 dark:text-slate-400">
+                      Time:
+                    </span>{" "}
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {alert.time}
+                    </span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
           <table className="min-w-full text-sm">
             <thead className="bg-slate-100 text-left text-slate-600 dark:bg-slate-950/40 dark:text-slate-400">
               <tr>

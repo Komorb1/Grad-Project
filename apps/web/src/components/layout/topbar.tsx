@@ -7,18 +7,20 @@ export async function Topbar() {
   const user = await getCurrentUser();
 
   return (
-    <header className="border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
-            Smart Emergency Alert System
+    <header className="border-b border-slate-200 bg-white/80 px-4 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80 sm:px-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-base font-semibold text-slate-900 dark:text-white sm:text-lg">
+            <span className="sm:hidden">SEAS</span>
+            <span className="hidden sm:inline">Smart Emergency Alert System</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Monitor sites, devices, and emergency events
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:justify-end">
           <ThemeToggle />
 
           <Link

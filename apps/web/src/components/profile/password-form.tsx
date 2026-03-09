@@ -52,56 +52,49 @@ export function PasswordForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-      <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-        Change Password
-      </h2>
-      <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-        Update your password to keep your account secure.
-      </p>
+    <form className="space-y-4" onSubmit={handleSubmit}>
+      <AuthInput
+        label="Current Password"
+        type="password"
+        value={currentPassword}
+        onChange={(event) => setCurrentPassword(event.target.value)}
+      />
 
-      <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-        <AuthInput
-          label="Current Password"
-          type="password"
-          value={currentPassword}
-          onChange={(event) => setCurrentPassword(event.target.value)}
-        />
+      <AuthInput
+        label="New Password"
+        type="password"
+        value={newPassword}
+        onChange={(event) => setNewPassword(event.target.value)}
+      />
 
-        <AuthInput
-          label="New Password"
-          type="password"
-          value={newPassword}
-          onChange={(event) => setNewPassword(event.target.value)}
-        />
+      <AuthInput
+        label="Confirm New Password"
+        type="password"
+        value={confirmPassword}
+        onChange={(event) => setConfirmPassword(event.target.value)}
+      />
 
-        <AuthInput
-          label="Confirm New Password"
-          type="password"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
-        />
+      {errorMessage ? (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-300">
+          {errorMessage}
+        </div>
+      ) : null}
 
-        {errorMessage ? (
-          <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-600 dark:text-red-300">
-            {errorMessage}
-          </div>
-        ) : null}
+      {successMessage ? (
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-300">
+          {successMessage}
+        </div>
+      ) : null}
 
-        {successMessage ? (
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-600 dark:text-emerald-300">
-            {successMessage}
-          </div>
-        ) : null}
-
+      <div className="pt-2">
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-xl bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-xl bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
         >
           {isSubmitting ? "Updating..." : "Change password"}
         </button>
-      </form>
-    </div>
+      </div>
+    </form>
   );
 }

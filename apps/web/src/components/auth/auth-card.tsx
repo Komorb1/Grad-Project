@@ -14,7 +14,7 @@ export function AuthCard({
   children,
 }: AuthCardProps) {
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:p-8 sm:shadow-2xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
           {title}
