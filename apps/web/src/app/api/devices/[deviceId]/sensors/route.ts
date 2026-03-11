@@ -9,7 +9,7 @@ type RouteContext = {
   params: Promise<{ deviceId: string }>;
 };
 
-const SensorTypeSchema = z.enum(["gas", "smoke", "flame", "motion", "door", "temp", "other"]);
+const SensorTypeSchema = z.enum(["gas", "smoke", "flame", "motion", "door", "other"]);
 
 const CreateSensorSchema = z.object({
   sensor_type: SensorTypeSchema,

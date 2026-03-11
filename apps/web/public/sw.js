@@ -1,9 +1,9 @@
-const CACHE_NAME = "seas-shell-v4";
-const APP_SHELL = ["/offline.html"];
+const CACHE_NAME = "seas-shell-v5";
+const OFFLINE_URL = "/offline.html";
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll([OFFLINE_URL]))
   );
   self.skipWaiting();
 });
@@ -22,16 +22,30 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
-  if (event.request.method !== "GET") return;
+  const { request } = event;
 
-  event.respondWith(
-    fetch(event.request).catch(async () => {
-      if (event.request.mode === "navigate") {
-        return caches.match("/offline.html");
-      }
+  if (request.method !== "GET") return;
 
-      const cached = await caches.match(event.request);
-      return cached || Response.error();
-    })
-  );
+  const url = new URL(request.url);
+
+  if (url.origin !== self.location.origin) return;
+
+  if (
+    url.pathname === "/manifest.webmanifest" ||
+    url.pathname === "/favicon.ico" ||
+    url.pathname.startsWith("/icons/") ||
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.startsWith("/api/")
+  ) {
+    return;
+  }
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(async () => {
+        const cached = await caches.match(OFFLINE_URL);
+        return cached || Response.error();
+      })
+    );
+  }
 });

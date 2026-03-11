@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { prisma} from "@/lib/prisma";
-import { POST as signupPOST } from "@/app/api/auth/signup/route";
+import { POST as signupPOST } from "@/app/api/auth/register/route";
 import { POST as loginPOST } from "@/app/api/auth/login/route";
 import { POST as logoutPOST } from "@/app/api/auth/logout/route";
 
