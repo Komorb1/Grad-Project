@@ -10,7 +10,9 @@
     "lint:web": "npm -w web run lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "db:up": "docker compose -f docker/docker-compose.yml up -d db",
+    "db:down": "docker compose -f docker/docker-compose.yml down"
   },
   "dependencies": {
     "@prisma/client": "^7.4.0",
