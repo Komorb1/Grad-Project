@@ -1,4 +1,4 @@
-const { spawn } = require("child_process");
+import { spawn } from "node:child_process";
 
 const composeArgs = ["compose", "-f", "../../docker/docker-compose.yml"];
 let nextProc = null;
