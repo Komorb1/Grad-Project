@@ -45,79 +45,85 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 describe("Sensors management (Task #9)", () => {
-  const OWNER_ID = "00000000-0000-0000-0000-000000000002";
-  const VIEWER_ID = "00000000-0000-0000-0000-000000000003";
+  const OWNER_ID = crypto.randomUUID();
+  const VIEWER_ID = crypto.randomUUID();
 
   let siteId = "";
   let deviceId = "";
   let sensorId = "";
 
-  beforeAll(async () => {
-    await prisma.site.deleteMany({ where: { name: "Sensors Test Site" } });
-    await prisma.siteUser.deleteMany({ where: { user_id: { in: [OWNER_ID, VIEWER_ID] } } });
-    
-    // Ensure users exist (idempotent)
-    await prisma.user.upsert({
-      where: { user_id: OWNER_ID },
-      update: {
-        full_name: "Owner User",
-        username: "owner_user_sensors",
-        email: "owner_user_sensors@example.com",
-        phone: null,
-        password_hash: "x",
-        status: "active",
-      },
-      create: {
+  let ownerUsername = "";
+  let viewerUsername = "";
+  let ownerEmail = "";
+  let viewerEmail = "";
+
+  beforeEach(async () => {
+    const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    ownerUsername = `owner_sensors_${suffix}`;
+    viewerUsername = `viewer_sensors_${suffix}`;
+    ownerEmail = `owner_sensors_${suffix}@example.com`;
+    viewerEmail = `viewer_sensors_${suffix}@example.com`;
+
+    delete process.env.MOCK_USER_ID;
+
+    // Create users first
+    await prisma.user.create({
+      data: {
         user_id: OWNER_ID,
         full_name: "Owner User",
-        username: "owner_user_sensors",
-        email: "owner_user_sensors@example.com",
+        username: ownerUsername,
+        email: ownerEmail,
         phone: null,
         password_hash: "x",
         status: "active",
       },
     });
 
-    await prisma.user.upsert({
-      where: { user_id: VIEWER_ID },
-      update: {
-        full_name: "Viewer User",
-        username: "viewer_user_sensors",
-        email: "viewer_user_sensors@example.com",
-        phone: null,
-        password_hash: "x",
-        status: "active",
-      },
-      create: {
+    await prisma.user.create({
+      data: {
         user_id: VIEWER_ID,
         full_name: "Viewer User",
-        username: "viewer_user_sensors",
-        email: "viewer_user_sensors@example.com",
+        username: viewerUsername,
+        email: viewerEmail,
         phone: null,
         password_hash: "x",
         status: "active",
       },
     });
 
+    // Create site
     const site = await prisma.site.create({
-      data: { name: "Sensors Test Site", status: "active" },
+      data: {
+        name: `Sensors Test Site ${suffix}`,
+        status: "active",
+      },
       select: { site_id: true },
     });
     siteId = site.site_id;
 
-    // memberships
+    // Create memberships
     await prisma.siteUser.create({
-      data: { site_id: siteId, user_id: OWNER_ID, role: "owner" },
-    });
-    await prisma.siteUser.create({
-      data: { site_id: siteId, user_id: VIEWER_ID, role: "viewer" },
+      data: {
+        site_id: siteId,
+        user_id: OWNER_ID,
+        role: "owner",
+      },
     });
 
-    // device under site
+    await prisma.siteUser.create({
+      data: {
+        site_id: siteId,
+        user_id: VIEWER_ID,
+        role: "viewer",
+      },
+    });
+
+    // Create device
     const device = await prisma.device.create({
       data: {
         site_id: siteId,
-        serial_number: `SN-SENS-${Date.now()}`,
+        serial_number: `SN-SENS-${suffix}`,
         device_type: "esp32",
         secret_hash: "x",
         status: "offline",
@@ -125,35 +131,94 @@ describe("Sensors management (Task #9)", () => {
       select: { device_id: true },
     });
     deviceId = device.device_id;
+
+    // Seed one sensor so read/update tests do not depend on another test
+    const sensor = await prisma.sensor.create({
+      data: {
+        device_id: deviceId,
+        sensor_type: "smoke",
+        location_label: "Kitchen ceiling",
+        is_enabled: true,
+        status: "ok",
+      },
+      select: { sensor_id: true },
+    });
+    sensorId = sensor.sensor_id;
+  });
+
+  afterEach(async () => {
+    delete process.env.MOCK_USER_ID;
+
+    if (sensorId) {
+      await prisma.sensor.deleteMany({
+        where: { sensor_id: sensorId },
+      });
+    }
+
+    if (deviceId) {
+      await prisma.device.deleteMany({
+        where: { device_id: deviceId },
+      });
+    }
+
+    if (siteId) {
+      await prisma.siteUser.deleteMany({
+        where: { site_id: siteId },
+      });
+
+      await prisma.site.deleteMany({
+        where: { site_id: siteId },
+      });
+    }
+
+    await prisma.user.deleteMany({
+      where: {
+        user_id: {
+          in: [OWNER_ID, VIEWER_ID],
+        },
+      },
+    });
+
+    siteId = "";
+    deviceId = "";
+    sensorId = "";
   });
 
   afterAll(async () => {
     delete process.env.MOCK_USER_ID;
-    if (sensorId) await prisma.sensor.deleteMany({ where: { sensor_id: sensorId } });
-    if (deviceId) await prisma.device.deleteMany({ where: { device_id: deviceId } });
-    if (siteId) await prisma.site.deleteMany({ where: { site_id: siteId } });
-
-    // memberships will cascade with site delete, but users are fine to keep
+    await prisma.$disconnect();
   });
 
   test("owner can add sensor to device", async () => {
     process.env.MOCK_USER_ID = OWNER_ID;
 
-    const req = makeReq("POST", { sensor_type: "smoke", location_label: "Kitchen ceiling" });
-    const res = await sensorsPOST(asNextRequest(req), { params: Promise.resolve({ deviceId }) });
+    const req = makeReq("POST", {
+      sensor_type: "temperature",
+      location_label: "Living room",
+    });
+
+    const res = await sensorsPOST(asNextRequest(req), {
+      params: Promise.resolve({ deviceId }),
+    });
 
     expect(res.status).toBe(201);
 
     const body = await readJson<CreateSensorResponse>(res);
-    sensorId = body.sensor.sensor_id;
-    expect(sensorId).toMatch(/^[0-9a-f-]{8}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{12}$/i);
+    expect(body.sensor.sensor_id).toMatch(
+      /^[0-9a-f-]{8}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{4}-[0-9a-f-]{12}$/i,
+    );
+    expect(body.sensor.device_id).toBe(deviceId);
+    expect(body.sensor.sensor_type).toBe("temperature");
+    expect(body.sensor.is_enabled).toBe(true);
   });
 
   test("list sensors per device (viewer can read)", async () => {
     process.env.MOCK_USER_ID = VIEWER_ID;
 
     const req = makeReq("GET");
-    const res = await sensorsGET(asNextRequest(req), { params: Promise.resolve({ deviceId }) });
+    const res = await sensorsGET(asNextRequest(req), {
+      params: Promise.resolve({ deviceId }),
+    });
 
     expect(res.status).toBe(200);
 
@@ -175,6 +240,7 @@ describe("Sensors management (Task #9)", () => {
       where: { sensor_id: sensorId },
       select: { is_enabled: true },
     });
+
     expect(updated?.is_enabled).toBe(false);
   });
 
@@ -192,6 +258,7 @@ describe("Sensors management (Task #9)", () => {
       where: { sensor_id: sensorId },
       select: { status: true },
     });
+
     expect(updated?.status).toBe("faulty");
   });
 
@@ -199,7 +266,9 @@ describe("Sensors management (Task #9)", () => {
     process.env.MOCK_USER_ID = VIEWER_ID;
 
     const req = makeReq("PATCH", { status: "ok" });
-    const res = await sensorPATCH(asNextRequest(req), { params: Promise.resolve({ sensorId }) });
+    const res = await sensorPATCH(asNextRequest(req), {
+      params: Promise.resolve({ sensorId }),
+    });
 
     expect(res.status).toBe(403);
   });
