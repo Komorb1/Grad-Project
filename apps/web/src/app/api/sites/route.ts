@@ -94,7 +94,7 @@ export async function GET(req: Request) {
     });
 
     // flatten role (since query returns array of 1)
-    const response = sites.map((s) => ({
+    const response = sites.map((s: (typeof sites)[number]) => ({
       ...s,
       my_role: s.site_users[0]?.role ?? "viewer",
       site_users: undefined,
