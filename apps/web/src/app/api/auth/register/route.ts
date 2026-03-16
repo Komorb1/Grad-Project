@@ -1,10 +1,19 @@
 import bcrypt from "bcrypt";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
 
+function isPrismaKnownError(
+  error: unknown
+): error is { code: string; meta?: Record<string, unknown> } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as { code?: unknown }).code === "string"
+  );
+}
 const SignupSchema = z.object({
   full_name: z.string().min(2, "Full name is required"),
   username: z
@@ -76,7 +85,7 @@ export async function POST(req: Request) {
 
     return Response.json({ user }, { status: 201 });
   } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (isPrismaKnownError(err) && err.code === "P2002") {
       if (err.code === "P2002") {
         return Response.json(
           { error: "Username or email is already in use." },
