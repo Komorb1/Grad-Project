@@ -1,14 +1,13 @@
 import { z } from "zod";
-import { PrismaClient } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUserId } from "@/lib/auth-request";
 
 export const runtime = "nodejs";
 
-type TxClient = Omit<
-  PrismaClient,
-  "$connect" | "$disconnect" | "$on" | "$transaction" | "$extends"
->;
+type SitesTx = {
+  site: typeof prisma.site;
+  siteUser: typeof prisma.siteUser;
+};
 
 const CreateSiteSchema = z.object({
   name: z.string().min(2, "Site name is required"),
@@ -32,30 +31,30 @@ export async function POST(req: Request) {
 
     const { name, address_line, city, country } = parsed.data;
 
-      const result = await prisma.$transaction(async (tx: TxClient) => {
-      const site = await tx.site.create({
-        data: { name, address_line, city, country },
-        select: {
-          site_id: true,
-          name: true,
-          address_line: true,
-          city: true,
-          country: true,
-          status: true,
-          created_at: true,
-        },
-      });
+const result = await prisma.$transaction(async (tx: SitesTx) => {
+  const site = await tx.site.create({
+    data: { name, address_line, city, country },
+    select: {
+      site_id: true,
+      name: true,
+      address_line: true,
+      city: true,
+      country: true,
+      status: true,
+      created_at: true,
+    },
+  });
 
-      await tx.siteUser.create({
-        data: {
-          site_id: site.site_id,
-          user_id: userId,
-          role: "owner",
-        },
-      });
+  await tx.siteUser.create({
+    data: {
+      site_id: site.site_id,
+      user_id: userId,
+      role: "owner",
+    },
+  });
 
-      return site;
-    });
+  return site;
+});
 
     return Response.json({ site: result }, { status: 201 });
   } catch (err: unknown) {
