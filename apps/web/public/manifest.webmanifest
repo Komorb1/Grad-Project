@@ -3,7 +3,7 @@
   "name": "SEAS Smart Emergency Alert System",
   "short_name": "SEAS",
   "description": "Smart environmental monitoring and emergency alerts for smoke, gas, flame, motion, and device events.",
-  "start_url": "/",
+  "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0F172A",
