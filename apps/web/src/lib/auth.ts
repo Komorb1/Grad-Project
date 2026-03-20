@@ -17,3 +17,16 @@ export async function getCurrentUser(): Promise<AuthPayload | null> {
 
   return payload;
 }
+
+export async function requireCurrentUserId(): Promise<string> {
+  const mock = process.env.MOCK_USER_ID;
+  if (mock) return mock;
+
+  const currentUser = await getCurrentUser();
+
+  if (!currentUser?.user_id) {
+    throw new Error("unauthenticated");
+  }
+
+  return currentUser.user_id;
+}
