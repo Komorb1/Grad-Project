@@ -99,27 +99,6 @@ export function evaluateReadingForEvent(
       }
       return null;
     }
-
-    case "temp": {
-      if (numericValue >= 80) {
-        return {
-          event_type: "other",
-          severity: "critical",
-          title: "Critical temperature detected",
-          description: `Temperature reached ${numericValue}.`,
-        };
-      }
-      if (numericValue >= 60) {
-        return {
-          event_type: "other",
-          severity: "high",
-          title: "High temperature detected",
-          description: `Temperature reached ${numericValue}.`,
-        };
-      }
-      return null;
-    }
-
     default:
       return null;
   }

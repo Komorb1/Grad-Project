@@ -35,8 +35,6 @@ enum SensorType {
   flame
   motion
   door
-  temp
-  other
 }
 
 enum SensorStatus {

@@ -78,7 +78,7 @@ describe("Sensor reading ingestion (Task #11)", () => {
     const sensor = await prisma.sensor.create({
       data: {
         device_id: DEVICE_ID,
-        sensor_type: "temp",
+        sensor_type: "gas",
         is_enabled: true,
         status: "ok",
       },
