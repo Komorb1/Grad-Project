@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BellRing, Clock3, MapPinned, TriangleAlert, Router } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { prisma } from "@/lib/prisma";
@@ -116,66 +117,71 @@ export default async function AlertsPage() {
                   : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400";
 
             return (
-              <article
+              <Link
                 key={alert.event_id}
-                className={[
-                  "rounded-2xl border border-slate-200 border-l-4 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:p-5",
-                  accentStyles,
-                ].join(" ")}
+                href={`/alerts/${alert.event_id}`}
+                className="block"
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start gap-3">
-                      <div className={["mt-0.5 rounded-xl p-2", iconStyles].join(" ")}>
-                        {uiSeverity === "critical" ? (
-                          <TriangleAlert className="h-5 w-5" />
-                        ) : (
-                          <BellRing className="h-5 w-5" />
-                        )}
-                      </div>
-
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-500">
-                          {alert.event_id}
-                        </p>
-
-                        <h3 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
-                          {alert.title?.trim() || formatEventType(alert.event_type)}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                        <MapPinned className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{alert.site.name}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
-                        <Clock3 className="h-4 w-4 shrink-0" />
-                        <span>{formatDateTime(alert.started_at)}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 sm:col-span-2">
-                        <Router className="h-4 w-4 shrink-0" />
-                        <span className="truncate">
-                          Device: {alert.device?.serial_number ?? "N/A"}
-                        </span>
-                      </div>
-
-                      {alert.description ? (
-                        <div className="text-slate-500 dark:text-slate-400 sm:col-span-2">
-                          {alert.description}
+                <article
+                  className={[
+                    "rounded-2xl border border-slate-200 border-l-4 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 sm:p-5",
+                    accentStyles,
+                  ].join(" ")}
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className={["mt-0.5 rounded-xl p-2", iconStyles].join(" ")}>
+                          {uiSeverity === "critical" ? (
+                            <TriangleAlert className="h-5 w-5" />
+                          ) : (
+                            <BellRing className="h-5 w-5" />
+                          )}
                         </div>
-                      ) : null}
+
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium tracking-wide text-slate-500 dark:text-slate-500">
+                            {alert.event_id}
+                          </p>
+
+                          <h3 className="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+                            {alert.title?.trim() || formatEventType(alert.event_type)}
+                          </h3>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                          <MapPinned className="h-4 w-4 shrink-0" />
+                          <span className="truncate">{alert.site.name}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                          <Clock3 className="h-4 w-4 shrink-0" />
+                          <span>{formatDateTime(alert.started_at)}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 sm:col-span-2">
+                          <Router className="h-4 w-4 shrink-0" />
+                          <span className="truncate">
+                            Device: {alert.device?.serial_number ?? "N/A"}
+                          </span>
+                        </div>
+
+                        {alert.description ? (
+                          <div className="text-slate-500 dark:text-slate-400 sm:col-span-2">
+                            {alert.description}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-start sm:justify-end">
+                      <StatusBadge status={uiSeverity} />
                     </div>
                   </div>
-
-                  <div className="flex shrink-0 items-start sm:justify-end">
-                    <StatusBadge status={uiSeverity} />
-                  </div>
-                </div>
-              </article>
+                </article>
+              </Link>
             );
           })}
         </section>
