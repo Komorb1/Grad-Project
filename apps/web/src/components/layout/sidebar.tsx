@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   Bell,
   ClipboardList,
   LayoutDashboard,
@@ -29,6 +30,11 @@ const navItems = [
     icon: Router,
   },
   {
+    label: "Readings",
+    href: "/readings",
+    icon: Activity,
+  },
+  {
     label: "Alerts",
     href: "/alerts",
     icon: ShieldAlert,
@@ -39,10 +45,10 @@ const navItems = [
     icon: User,
   },
   {
-  label: "Audit Logs",
-  href: "/audit-logs",
-  icon: ClipboardList,
-},
+    label: "Audit Logs",
+    href: "/audit-logs",
+    icon: ClipboardList,
+  },
 ];
 
 export function Sidebar() {

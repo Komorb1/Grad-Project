@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Activity,
   ClipboardList,
   LayoutDashboard,
   MapPinned,
@@ -28,6 +29,11 @@ const navItems = [
     icon: Router,
   },
   {
+    label: "Readings",
+    href: "/readings",
+    icon: Activity,
+  },
+  {
     label: "Alerts",
     href: "/alerts",
     icon: ShieldAlert,
@@ -49,7 +55,7 @@ export function MobileBottomNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur md:hidden dark:border-slate-800 dark:bg-slate-950/95">
-      <div className="grid grid-cols-6">
+      <div className="grid grid-cols-7">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
