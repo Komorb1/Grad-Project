@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { LogoutButton } from "./logout-button";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { PushNotificationButton } from "@/components/push-notification-button";
 
 export async function Topbar() {
   const user = await getCurrentUser();
@@ -21,6 +22,7 @@ export async function Topbar() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:justify-end">
+          <PushNotificationButton />
           <ThemeToggle />
 
           <Link
