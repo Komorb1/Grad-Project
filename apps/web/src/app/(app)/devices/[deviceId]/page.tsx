@@ -10,6 +10,7 @@ import {
   Activity,
 } from "lucide-react";
 
+import { SensorSettingsAction } from "@/components/devices/sensor-settings-action";
 import { prisma } from "@/lib/prisma";
 import { requireCurrentUserId } from "@/lib/auth";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -355,18 +356,33 @@ export default async function DeviceDetailPage({
                       <p className="text-slate-500 dark:text-slate-500">
                         No sensors attached
                       </p>
+                    ) : canManageDevice ? (
+                      <div className="mt-2 space-y-3">
+                        {device.sensors.map((sensor) => (
+                          <SensorSettingsAction
+                            key={sensor.sensor_id}
+                            sensorId={sensor.sensor_id}
+                            sensorTypeLabel={formatEnumLabel(String(sensor.sensor_type))}
+                            initialLocationLabel={sensor.location_label}
+                            initialStatus={sensor.status}
+                            initialEnabled={sensor.is_enabled}
+                          />
+                        ))}
+                      </div>
                     ) : (
-                      device.sensors.map((sensor) => (
-                        <div
-                          key={sensor.sensor_id}
-                          className="text-slate-500 dark:text-slate-500"
-                        >
-                          {formatEnumLabel(String(sensor.sensor_type))}
-                          {sensor.location_label ? ` • ${sensor.location_label}` : ""}
-                          {` • ${formatEnumLabel(String(sensor.status))}`}
-                          {sensor.is_enabled ? "" : " • Disabled"}
-                        </div>
-                      ))
+                      <div className="mt-2 space-y-2">
+                        {device.sensors.map((sensor) => (
+                          <div
+                            key={sensor.sensor_id}
+                            className="text-slate-500 dark:text-slate-500"
+                          >
+                            {formatEnumLabel(String(sensor.sensor_type))}
+                            {sensor.location_label ? ` • ${sensor.location_label}` : ""}
+                            {` • ${formatEnumLabel(String(sensor.status))}`}
+                            {sensor.is_enabled ? "" : " • Disabled"}
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </div>
